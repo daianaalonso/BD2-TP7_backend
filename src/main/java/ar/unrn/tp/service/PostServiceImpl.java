@@ -52,7 +52,7 @@ public class PostServiceImpl implements PostService {
             MongoCollection<Document> collection = database.getCollection("posts");
 
             post = collection
-                    .find(Filters.eq("_id", new ObjectId(id)))
+                    .find(Filters.eq("_id", id))
                     .first();
 
         } catch (Exception e) {

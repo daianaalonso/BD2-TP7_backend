@@ -42,7 +42,7 @@ public class PageServiceImpl implements PageService {
             MongoCollection<Document> collection = database.getCollection("pages");
 
             page = collection
-                    .find(Filters.eq("_id", new ObjectId(id)))
+                    .find(Filters.eq("_id", id))
                     .first();
 
         } catch (Exception e) {
