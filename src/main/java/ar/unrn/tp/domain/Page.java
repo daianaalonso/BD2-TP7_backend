@@ -3,7 +3,7 @@ package ar.unrn.tp.domain;
 import java.time.LocalDate;
 
 public class Page {
-    private Long id;
+    private String id;
     private String title;
     private String text;
     private String author;
@@ -16,11 +16,11 @@ public class Page {
         this.date = date;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
