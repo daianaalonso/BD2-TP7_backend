@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.mongodb.client.model.Projections.*;
+
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -32,7 +34,7 @@ public class PostServiceImpl implements PostService {
                     .append("text", post.getTitle())
                     .append("tags", post.getTags())
                     .append("resume", post.getResume())
-                    .append("relatedLinks", post.getRelatedLinks())
+                    .append("related-links", post.getRelatedLinks())
                     .append("author", post.getAuthor())
                     .append("date", post.getDate().toString());
 
@@ -44,51 +46,83 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Document findPost(String id) {
+        Document post = null;
         try (MongoClient mongoClient = getMongoClient()) {
             MongoDatabase database = mongoClient.getDatabase("blog");
             MongoCollection<Document> collection = database.getCollection("posts");
 
-            Document post = collection
+            post = collection
                     .find(Filters.eq("_id", new ObjectId(id)))
                     .first();
 
-            if (post != null) {
-                return post;
-            } else {
-                System.out.println("No se encontró ningun post.");
-                return null;
-            }
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+        return post;
     }
 
     @Override
     public List<Document> findLastPosts() {
-        return null;
-    }
-
-    @Override
-    public List<Document> findPostsByAuthor(String author) {
-        return null;
-    }
-
-    @Override
-    public List<Document> findPostsByText(String text) {
+        List<Document> documents = new ArrayList<>();
         try (MongoClient mongoClient = getMongoClient()) {
             MongoDatabase database = mongoClient.getDatabase("blog");
             MongoCollection<Document> collection = database.getCollection("posts");
-            collection.createIndex(Indexes.text("text"));
-//usar projecciones para devolver excluir campos?
-            List<Document> documents = collection
-                    .find(Filters.text(text))
+
+            documents = collection
+                    .find()
+                    .sort(Sorts.descending("date"))
+                    .projection(
+                            fields(
+                                    include("id", "title", "resume"),
+                                    exclude("author", "date", "text", "tags", "related-links")
+                            )
+                    )
+                    .limit(4)
                     .into(new ArrayList<>());
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return documents;
+    }
+
+    @Override
+    public List<Document> findPostsByAuthor(String author) {
+        List<Document> documents = new ArrayList<>();
+        try (MongoClient mongoClient = getMongoClient()) {
+            MongoDatabase database = mongoClient.getDatabase("blog");
+            MongoCollection<Document> collection = database.getCollection("posts");
+
+            documents = collection
+                    .find(Filters.eq("author", author))
+                    .into(new ArrayList<>());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return documents;
+    }
+
+    @Override
+    public List<Document> findPostsByText(String text) {
+        List<Document> documents = new ArrayList<>();
+        try (MongoClient mongoClient = getMongoClient()) {
+            MongoDatabase database = mongoClient.getDatabase("blog");
+            MongoCollection<Document> collection = database.getCollection("posts");
+
+            collection.createIndex(Indexes.text("text"));
+
+            documents = collection
+                    .find(Filters.text(text))
+                    .projection(
+                            fields(
+                                    include("id", "title", "resume", "author", "date"),
+                                    exclude("text", "tags", "relatedLinks")))
+                    .into(new ArrayList<>());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return documents;
     }
 
     @Override
@@ -101,9 +135,9 @@ public class PostServiceImpl implements PostService {
             documents = collection.aggregate(
                             Arrays.asList(
                                     Aggregates.project(
-                                            Projections.fields(
+                                            fields(
                                                     Projections.exclude("title", "text", "tags", "resume", "relatedLinks", "date"),
-                                                    Projections.include("author")
+                                                    include("author")
                                             )
                                     ),
                                     Aggregates.group("$author", Accumulators.sum("count", 1))))

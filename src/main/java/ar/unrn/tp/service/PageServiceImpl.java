@@ -36,25 +36,18 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public Document findPage(String id) {
+        Document page = null;
         try (MongoClient mongoClient = getMongoClient()) {
             MongoDatabase database = mongoClient.getDatabase("blog");
             MongoCollection<Document> collection = database.getCollection("pages");
 
-            Document page = collection
+            page = collection
                     .find(Filters.eq("_id", new ObjectId(id)))
                     .first();
 
-            if (page != null) {
-                return page;
-            } else {
-                System.out.println("No se encontró ninguna pagina.");
-                return null;
-            }
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+        return page;
     }
-
-
 }
