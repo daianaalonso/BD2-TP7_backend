@@ -136,7 +136,7 @@ public class PostServiceImpl implements PostService {
                             Arrays.asList(
                                     Aggregates.project(
                                             fields(
-                                                    Projections.exclude("title", "text", "tags", "resume", "relatedLinks", "date"),
+                                                    exclude("title", "text", "tags", "resume", "relatedLinks", "date"),
                                                     include("author")
                                             )
                                     ),
