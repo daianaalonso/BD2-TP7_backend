@@ -11,8 +11,13 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class PageServiceImpl implements PageService {
+    private MongoDatabase database;
+    private MongoCollection<Document> collection;
 
     private MongoClient getMongoClient() {
         return MongoClients.create("mongodb://root:test.123@localhost:27017/?authSource=admin");
@@ -20,33 +25,39 @@ public class PageServiceImpl implements PageService {
 
     public void insertPage(Page page) {
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("pages");
-
-            Document document = new Document("title", page.getTitle())
-                    .append("text", page.getTitle())
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("pages");
+            Document document = new Document(
+                    "title", page.getTitle())
+                    .append("text", page.getText())
                     .append("author", page.getAuthor())
                     .append("date", page.getDate().toString());
-
             collection.insertOne(document);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
     }
 
     @Override
-    public Document findPage(String id) {
-        Document page = null;
+    public Page findPage(String id) {
+        Page page;
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("pages");
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("pages");
 
-            page = collection
-                    .find(Filters.eq("_id", id))
+            //o findOne?
+            Document document = collection
+                    .find(Filters.eq("_id", new ObjectId(id)))
                     .first();
-
+            page = Page.builder()
+                    .id(String.valueOf(document.getObjectId("_id")))
+                    .title(document.getString("title"))
+                    .text(document.getString("text"))
+                    .author(document.getString("author"))
+                    .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                    .build();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
         return page;
     }

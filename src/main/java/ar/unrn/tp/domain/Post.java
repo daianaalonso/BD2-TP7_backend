@@ -1,8 +1,15 @@
 package ar.unrn.tp.domain;
 
+import lombok.*;
+
 import java.time.LocalDate;
 import java.util.List;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Post {
     private String id;
     private String title;
@@ -20,70 +27,6 @@ public class Post {
         this.resume = resume;
         this.relatedLinks = relatedLinks;
         this.author = author;
-        this.date = date;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public String getResume() {
-        return resume;
-    }
-
-    public void setResume(String resume) {
-        this.resume = resume;
-    }
-
-    public List<String> getRelatedLinks() {
-        return relatedLinks;
-    }
-
-    public void setRelatedLinks(List<String> relatedLinks) {
-        this.relatedLinks = relatedLinks;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
         this.date = date;
     }
 }

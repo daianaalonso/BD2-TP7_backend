@@ -2,23 +2,27 @@ package ar.unrn.tp.service;
 
 import ar.unrn.tp.api.PostService;
 import ar.unrn.tp.domain.Post;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Projections.fields;
+import static com.mongodb.client.model.Projections.include;
 
 @Service
 public class PostServiceImpl implements PostService {
+    private MongoDatabase database;
+    private MongoCollection<Document> collection;
 
     private MongoClient getMongoClient() {
         return MongoClients.create("mongodb://root:test.123@localhost:27017/?authSource=admin");
@@ -27,11 +31,12 @@ public class PostServiceImpl implements PostService {
     @Override
     public void insertPost(Post post) {
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("posts");
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("posts");
 
-            Document document = new Document("title", post.getTitle())
-                    .append("text", post.getTitle())
+            Document document = new Document(
+                    "title", post.getTitle())
+                    .append("text", post.getText())
                     .append("tags", post.getTags())
                     .append("resume", post.getResume())
                     .append("related-links", post.getRelatedLinks())
@@ -40,111 +45,130 @@ public class PostServiceImpl implements PostService {
 
             collection.insertOne(document);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
     }
 
     @Override
-    public Document findPost(String id) {
-        Document post = null;
+    public Post findPost(String id) {
+        Post post = null;
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("posts");
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("posts");
 
-            post = collection
-                    .find(Filters.eq("_id", id))
+            Document document = collection
+                    .find(Filters.eq("_id", new ObjectId(id)))
                     .first();
 
+            post = Post.builder()
+                    .id(String.valueOf(document.getObjectId("_id")))
+                    .title(document.getString("title"))
+                    .text(document.getString("text"))
+                    .tags(document.getList("tags", String.class))
+                    .resume(document.getString("resume"))
+                    .relatedLinks(document.getList("related-links", String.class))
+                    .author(document.getString("author"))
+                    .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                    .build();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
         return post;
     }
 
     @Override
-    public List<Document> findLastPosts() {
-        List<Document> documents = new ArrayList<>();
+    public List<Post> findLatestPosts() {
+        List<Post> posts;
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("posts");
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("posts");
 
-            documents = collection
+            posts = collection
                     .find()
+                    .projection(fields(include("_id", "title", "resume")))
                     .sort(Sorts.descending("date"))
-                    .projection(
-                            fields(
-                                    include("id", "title", "resume"),
-                                    exclude("author", "date", "text", "tags", "related-links")
-                            )
-                    )
                     .limit(4)
+                    .map(doc -> Post.builder()
+                            .id(String.valueOf(doc.getObjectId("_id")))
+                            .title(doc.getString("title"))
+                            .resume(doc.getString("resume"))
+                            .build())
                     .into(new ArrayList<>());
-
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
-        return documents;
+        return posts;
     }
 
     @Override
-    public List<Document> findPostsByAuthor(String author) {
-        List<Document> documents = new ArrayList<>();
+    public List<Post> findPostsByAuthor(String author) {
+        List<Post> posts;
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("posts");
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("posts");
 
-            documents = collection
+            posts = collection
                     .find(Filters.eq("author", author))
+                    .map(document -> Post.builder()
+                            .id(String.valueOf(document.getObjectId("_id")))
+                            .title(document.getString("title"))
+                            .text(document.getString("text"))
+                            .tags(document.getList("tags", String.class))
+                            .resume(document.getString("resume"))
+                            .relatedLinks(document.getList("related-links", String.class))
+                            .author(document.getString("author"))
+                            .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                            .build())
                     .into(new ArrayList<>());
-
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
-        return documents;
+        return posts;
     }
 
     @Override
-    public List<Document> findPostsByText(String text) {
-        List<Document> documents = new ArrayList<>();
+    public List<Post> findPostsByText(String text) {
+        List<Post> posts;
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("posts");
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("posts");
 
             collection.createIndex(Indexes.text("text"));
 
-            documents = collection
+            posts = collection
                     .find(Filters.text(text))
-                    .projection(
-                            fields(
-                                    include("id", "title", "resume", "author", "date"),
-                                    exclude("text", "tags", "relatedLinks")))
+                    .projection(fields(include("id", "title", "resume", "author", "date")))
+                    .map(document -> Post.builder()
+                            .id(String.valueOf(document.getObjectId("_id")))
+                            .title(document.getString("title"))
+                            .resume(document.getString("resume"))
+                            .author(document.getString("author"))
+                            .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                            .build())
                     .into(new ArrayList<>());
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
-        return documents;
+        return posts;
     }
 
     @Override
-    public List<Document> countPostsByAuthor() {
-        List<Document> documents = new ArrayList<>();
+    public String countPostsByAuthor() {
+        String json;
         try (MongoClient mongoClient = getMongoClient()) {
-            MongoDatabase database = mongoClient.getDatabase("blog");
-            MongoCollection<Document> collection = database.getCollection("posts");
+            database = mongoClient.getDatabase("blog");
+            collection = database.getCollection("posts");
 
-            documents = collection.aggregate(
-                            Arrays.asList(
-                                    Aggregates.project(
-                                            fields(
-                                                    exclude("title", "text", "tags", "resume", "relatedLinks", "date"),
-                                                    include("author")
-                                            )
-                                    ),
-                                    Aggregates.group("$author", Accumulators.sum("count", 1))))
-                    .into(new ArrayList<>());
+            AggregateIterable<Document> result = collection.aggregate(
+                    Arrays.asList(Aggregates.group("$author", Accumulators.sum("count", 1)))
+            );
+            json = (StreamSupport.stream(result.spliterator(), false)
+                    .map(Document::toJson)
+                    .collect(Collectors.joining(", ", "[", "]")));
+
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
-        return documents;
+        return json;
     }
 }
