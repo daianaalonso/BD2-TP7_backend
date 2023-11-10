@@ -1,12 +1,10 @@
 package ar.unrn.tp.controller;
 
 import ar.unrn.tp.api.PostService;
+import ar.unrn.tp.controller.request.AuthorCount;
 import ar.unrn.tp.domain.Post;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -17,7 +15,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/{id}")
-    public Post find(@PathVariable String id) {
+    public List<Post> find(@PathVariable String id) {
         return postService.findPost(id);
     }
 
@@ -27,13 +25,13 @@ public class PostController {
     }
 
     @GetMapping("/byauthor")
-    public String countByAuthor() {
+    public List<AuthorCount> countByAuthor() {
         return postService.countPostsByAuthor();
     }
 
-    @GetMapping("/author/{nombreautor}")
-    public List<Post> findByAuthor(@PathVariable String nombreautor) {
-        return postService.findPostsByAuthor(nombreautor);
+    @GetMapping("/author/{name}")
+    public List<Post> findByAuthor(@PathVariable String name) {
+        return postService.findPostsByAuthor(name);
     }
 
     @GetMapping("/search/{text}")

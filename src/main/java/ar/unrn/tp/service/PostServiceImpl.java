@@ -1,6 +1,7 @@
 package ar.unrn.tp.service;
 
 import ar.unrn.tp.api.PostService;
+import ar.unrn.tp.controller.request.AuthorCount;
 import ar.unrn.tp.domain.Post;
 import com.mongodb.client.*;
 import com.mongodb.client.model.*;
@@ -42,7 +43,6 @@ public class PostServiceImpl implements PostService {
                     .append("related-links", post.getRelatedLinks())
                     .append("author", post.getAuthor())
                     .append("date", post.getDate().toString());
-
             collection.insertOne(document);
         } catch (Exception e) {
             throw e;
@@ -50,26 +50,25 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Post findPost(String id) {
-        Post post = null;
+    public List<Post> findPost(String id) {
+        List<Post> post;
         try (MongoClient mongoClient = getMongoClient()) {
             database = mongoClient.getDatabase("blog");
             collection = database.getCollection("posts");
 
-            Document document = collection
+            post = collection
                     .find(Filters.eq("_id", new ObjectId(id)))
-                    .first();
-
-            post = Post.builder()
-                    .id(String.valueOf(document.getObjectId("_id")))
-                    .title(document.getString("title"))
-                    .text(document.getString("text"))
-                    .tags(document.getList("tags", String.class))
-                    .resume(document.getString("resume"))
-                    .relatedLinks(document.getList("related-links", String.class))
-                    .author(document.getString("author"))
-                    .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                    .build();
+                    .map(document -> Post.builder()
+                            .id(String.valueOf(document.getObjectId("_id")))
+                            .title(document.getString("title"))
+                            .text(document.getString("text"))
+                            .tags(document.getList("tags", String.class))
+                            .resume(document.getString("resume"))
+                            .relatedLinks(document.getList("related-links", String.class))
+                            .author(document.getString("author"))
+                            .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                            .build())
+                    .into(new ArrayList<>());
         } catch (Exception e) {
             throw e;
         }
@@ -153,22 +152,27 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public String countPostsByAuthor() {
-        String json;
+    public List<AuthorCount> countPostsByAuthor() {
+        List<AuthorCount> result;
         try (MongoClient mongoClient = getMongoClient()) {
             database = mongoClient.getDatabase("blog");
             collection = database.getCollection("posts");
 
-            AggregateIterable<Document> result = collection.aggregate(
+            AggregateIterable<Document> documents = collection.aggregate(
                     Arrays.asList(Aggregates.group("$author", Accumulators.sum("count", 1)))
             );
-            json = (StreamSupport.stream(result.spliterator(), false)
+            result = StreamSupport.stream(documents.spliterator(), false)
+                    .map(document -> new AuthorCount(
+                            document.getString("_id"),
+                            document.getInteger("count")))
+                    .collect(Collectors.toList());
+            /*json = (StreamSupport.stream(documents.spliterator(), false)
                     .map(Document::toJson)
-                    .collect(Collectors.joining(", ", "[", "]")));
+                    .collect(Collectors.joining(", ", "[", "]")));*/
 
         } catch (Exception e) {
             throw e;
         }
-        return json;
+        return result;
     }
 }

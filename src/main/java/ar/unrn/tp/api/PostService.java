@@ -1,5 +1,6 @@
 package ar.unrn.tp.api;
 
+import ar.unrn.tp.controller.request.AuthorCount;
 import ar.unrn.tp.domain.Post;
 
 import java.util.List;
@@ -8,7 +9,7 @@ public interface PostService {
 
     void insertPost(Post post);
 
-    Post findPost(String id);
+    List<Post> findPost(String id);
 
     List<Post> findLatestPosts();
 
@@ -16,5 +17,5 @@ public interface PostService {
 
     List<Post> findPostsByText(String text);
 
-    String countPostsByAuthor();
+    List<AuthorCount> countPostsByAuthor();
 }

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class PageServiceImpl implements PageService {
@@ -39,14 +41,23 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public Page findPage(String id) {
-        Page page;
+    public List<Page> findPage(String id) {
+        List<Page> page;
         try (MongoClient mongoClient = getMongoClient()) {
             database = mongoClient.getDatabase("blog");
             collection = database.getCollection("pages");
-
+            page = collection
+                    .find(Filters.eq("_id", new ObjectId(id)))
+                    .map(document -> Page.builder()
+                            .id(String.valueOf(document.getObjectId("_id")))
+                            .title(document.getString("title"))
+                            .text(document.getString("text"))
+                            .author(document.getString("author"))
+                            .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                            .build())
+                    .into(new ArrayList<>());
             //o findOne?
-            Document document = collection
+            /*Document document = collection
                     .find(Filters.eq("_id", new ObjectId(id)))
                     .first();
             page = Page.builder()
@@ -55,7 +66,7 @@ public class PageServiceImpl implements PageService {
                     .text(document.getString("text"))
                     .author(document.getString("author"))
                     .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                    .build();
+                    .build();*/
         } catch (Exception e) {
             throw e;
         }
