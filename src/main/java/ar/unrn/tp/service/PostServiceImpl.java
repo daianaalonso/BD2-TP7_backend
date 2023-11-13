@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -49,7 +50,39 @@ public class PostServiceImpl implements PostService {
         }
     }
 
+    private void inTransactionExecute(Consumer<MongoCollection<Document>> bloqueDeCodigo) {
+        MongoClient mongoClient = getMongoClient();
+        MongoDatabase database = mongoClient.getDatabase("blog");
+        MongoCollection<Document> collection = database.getCollection("posts");
+        try {
+            bloqueDeCodigo.accept(collection);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            mongoClient.close();
+        }
+    }
+
     @Override
+    public List<Post> findPost(String id) {
+        List<Post> posts = new ArrayList<>();
+        inTransactionExecute(collection -> posts.addAll(collection
+                .find(Filters.eq("_id", new ObjectId(id)))
+                .map(document -> Post.builder()
+                        .id(String.valueOf(document.getObjectId("_id")))
+                        .title(document.getString("title"))
+                        .text(document.getString("text"))
+                        .tags(document.getList("tags", String.class))
+                        .resume(document.getString("resume"))
+                        .relatedLinks(document.getList("related-links", String.class))
+                        .author(document.getString("author"))
+                        .date(LocalDate.parse(document.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                        .build())
+                .into(new ArrayList<>())));
+        return posts;
+    }
+
+    /*@Override
     public List<Post> findPost(String id) {
         List<Post> post;
         try (MongoClient mongoClient = getMongoClient()) {
@@ -73,7 +106,7 @@ public class PostServiceImpl implements PostService {
             throw e;
         }
         return post;
-    }
+    }*/
 
     @Override
     public List<Post> findLatestPosts() {
