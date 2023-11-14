@@ -20,13 +20,4 @@ public class Post {
     private String author;
     private LocalDate date;
 
-    public Post(String title, String text, List<String> tags, String resume, List<String> relatedLinks, String author, LocalDate date) {
-        this.title = title;
-        this.text = text;
-        this.tags = tags;
-        this.resume = resume;
-        this.relatedLinks = relatedLinks;
-        this.author = author;
-        this.date = date;
-    }
 }

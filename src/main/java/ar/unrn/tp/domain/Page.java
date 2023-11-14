@@ -17,11 +17,4 @@ public class Page {
     private String text;
     private String author;
     private LocalDate date;
-
-    public Page(String title, String text, String author, LocalDate date) {
-        this.title = title;
-        this.text = text;
-        this.author = author;
-        this.date = date;
-    }
 }

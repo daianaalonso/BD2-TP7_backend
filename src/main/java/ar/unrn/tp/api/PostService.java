@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface PostService {
 
-    void insertPost(Post post);
+    Post insertPost(Post post);
 
     List<Post> findPost(String id);
 

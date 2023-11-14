@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface PageService {
 
-    void insertPage(Page page);
+    Page insertPage(Page page);
 
     List<Page> findPage(String id);
 

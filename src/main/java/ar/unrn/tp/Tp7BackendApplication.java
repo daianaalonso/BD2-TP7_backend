@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Bean;
 
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.List;
 
 @SpringBootApplication
 public class Tp7BackendApplication {
@@ -27,38 +26,85 @@ public class Tp7BackendApplication {
     PostService postService;
 
     private void insertPage() {
-        Page page1 = new Page("Sobre las Infusiones", "Una infusión es una bebida", "Daiana Alonso", LocalDate.now().minusDays(2));
-        Page page2 = new Page("Titulo de la página", "Texto de la página", "Autor de la página", LocalDate.now().minusDays(5));
+        Page page1 = Page.builder()
+                .title("Explorando la Patagonia Argentina")
+                .text("Descubre la belleza natural y la rica cultura de la Patagonia Argentina...")
+                .author("Daiana Alonso")
+                .date(LocalDate.now().minusDays(10))
+                .build();
 
         pageService.insertPage(page1);
-        pageService.insertPage(page2);
     }
 
     private void insertPost() {
-        Post post1 = new Post("Té", "El té es una infusión", Arrays.asList("1", "2", "3"), "resumen aaaa", Arrays.asList("link"), "Daiana", LocalDate.now().minusDays(10));
-        Post post2 = new Post("Té Verde", "El té verde es una infusión", Arrays.asList("1", "2"), "resumen bbbb", Arrays.asList("link"), "Xiomara", LocalDate.now().minusDays(7));
-        Post post3 = new Post("Matecocido", "El matecocido es una infusión", Arrays.asList("1", "2"), "resumen ccc ", Arrays.asList("link"), "Valentin", LocalDate.now().minusDays(8));
-        Post post4 = new Post("Mate", "El mate es una infusión", Arrays.asList("1", "2"), "resumen dddd", Arrays.asList("link"), "Andres", LocalDate.now().minusDays(5));
-        Post post5 = new Post("Té de boldo", "El té de boldo es una infusión", Arrays.asList("1", "2"), "resumen eeee", Arrays.asList("link"), "Sabrina", LocalDate.now().minusDays(2));
+        Post post1 = Post.builder()
+                .title("Explorando El Calafate: Glaciares y Aventuras")
+                .text("Embárcate en una aventura única en El Calafate, donde la majestuosidad de los glaciares se combina con emocionantes actividades al aire libre. Descubre un destino que te dejará sin aliento.")
+                .resume("Descubre la maravilla de los glaciares en El Calafate y las emocionantes aventuras que te esperan en esta región única.")
+                .tags(Arrays.asList("El Calafate", "Glaciares", "Aventuras"))
+                .relatedLinks(Arrays.asList("link1.com", "link2.com"))
+                .author("Daiana Alonso")
+                .date(LocalDate.now().minusDays(8))
+                .build();
+        Post post2 = Post.builder()
+                .title("Senderismo en El Chaltén: Rutas Escénicas y Naturaleza Imparable")
+                .text("Sumérgete en la maravilla natural de El Chaltén, donde cada sendero ofrece vistas panorámicas inigualables. Explora la belleza virgen de la Patagonia a cada paso.")
+                .resume("Sumérgete en la belleza natural de El Chaltén mientras exploras rutas de senderismo escénicas y te conectas con la naturaleza virgen.")
+                .tags(Arrays.asList("El Chaltén", "Senderismo", "Naturaleza"))
+                .relatedLinks(Arrays.asList("link1.com", "link2.com"))
+                .author("Andres Blanco")
+                .date(LocalDate.now().minusDays(9))
+                .build();
+        Post post3 = Post.builder()
+                .title("La Fauna Única de la Patagonia")
+                .text("Adéntrate en la riqueza de la vida silvestre patagónica, desde la elegancia de los pingüinos hasta la gracia de los guanacos. Descubre un ecosistema único en el mundo.")
+                .resume("Conoce la diversa vida silvestre que habita en la Patagonia, desde adorables pingüinos hasta majestuosos guanacos.")
+                .tags(Arrays.asList("Fauna", "Patagonia"))
+                .relatedLinks(Arrays.asList("link1.com", "link2.com"))
+                .author("Sabrina Ramos")
+                .date(LocalDate.now().minusDays(5))
+                .build();
+        Post post4 = Post.builder()
+                .title("Cocina Patagónica: Sabores Tradicionales y Delicias Gastronómicas")
+                .text("Explora la riqueza de la cocina patagónica, donde los sabores auténticos se mezclan con delicias gastronómicas modernas. Una experiencia culinaria que deleitará tus sentidos.")
+                .resume("Explora los sabores únicos de la cocina patagónica, desde platos tradicionales hasta delicias gastronómicas modernas.")
+                .tags(Arrays.asList("Gastronomía", "Patagonia", "Comida Tradicional"))
+                .relatedLinks(Arrays.asList("link1.com", "link2.com"))
+                .author("Daiana Alonso")
+                .date(LocalDate.now().minusDays(3))
+                .build();
+        Post post5 = Post.builder()
+                .title("Puerto Madryn: Encuentro con Ballenas y Vida Marina")
+                .text("Explora las aguas de Puerto Madryn, donde el asombroso espectáculo de ballenas se une a la rica diversidad de la vida marina. Una experiencia única en el corazón de la Patagonia.")
+                .resume("Explora las aguas de Puerto Madryn, donde tendrás la oportunidad de presenciar el asombroso espectáculo de ballenas y la rica vida marina.")
+                .tags(Arrays.asList("Puerto Madryn", "Ballenas", "Vida Marina"))
+                .relatedLinks(Arrays.asList("link1.com", "link2.com"))
+                .author("Andres Blanco")
+                .date(LocalDate.now().minusDays(6))
+                .build();
+        Post post6 = Post.builder()
+                .title("Ushuaia: Fin del Mundo y Naturaleza Salvaje")
+                .text("Descubre la ciudad más austral del mundo, Ushuaia, rodeada de una naturaleza salvaje y paisajes impresionantes. Adéntrate en el fin del mundo y déjate cautivar por su belleza única.")
+                .resume("Descubre la ciudad más austral del mundo, Ushuaia, rodeada de una naturaleza salvaje y paisajes impresionantes.")
+                .tags(Arrays.asList("Ushuaia", "Fin del Mundo", "Naturaleza Salvaje"))
+                .relatedLinks(Arrays.asList("link1.com", "link2.com"))
+                .author("Sabrina Ramos")
+                .date(LocalDate.now().minusDays(1))
+                .build();
 
         postService.insertPost(post1);
         postService.insertPost(post2);
         postService.insertPost(post3);
         postService.insertPost(post4);
         postService.insertPost(post5);
+        postService.insertPost(post6);
     }
 
     @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
-            //insertPage();
-            //insertPost();
-            /*Page page = pageService.findPage("654b6fef6e64905432608c37");
-            System.out.println(page.getTitle());
-            List<Post> posts = postService.findLastPosts();
-            for (Post p : posts) {
-                System.out.println(p.getTitle());
-            }*/
+            //  insertPage();
+            // insertPost();
         };
     }
 }
